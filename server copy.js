@@ -631,41 +631,24 @@ app.get("/admin_page", function (request, response) {
     response.send(str);
 });
 
-                            ////////////////////////////
-                            ////ITM353 Assignment 6 ////
-                            ////////////////////////////
-
-//function to allow admin to set discount dynamically or apply it manually on the admin interface 
 function setPrice(item_id, products, sales_record, discount, dynamic) {
-
-    // Read sales record data from the sales_record.json file and parse it into the variable sales_record
     try {
       const salesData = fs.readFileSync('./sales_record.json', 'utf-8');
       sales_record = JSON.parse(salesData);
-    } catch (err) {
-      // Handle error if reading the file fails
+  } catch (err) {
       console.log('Error reading sales record file:', err);
-    }
-  
-    // Get the current date and time
+  }
     const now = new Date();
-  
-    // Discount rates based on different time periods
     const discountRates = {
       24: 10,
       48: 30,
       72: 60,
       96: 95,
     };
-  
-    // Iterate over the product categories in the products_data file
     for (let category in products) {
-      // Iterate over each product in the category (bikes, jerseys, and helmets)
       products[category].forEach((product) => {
-        // Check if the item_id matches or if item_id is '*' (all items)
         if (item_id === '*' || product.id === item_id) {
           if (dynamic) {
-            // Apply dynamic pricing based on sales records
             const sales = sales_record.filter((record) =>
               record.item_id === product.id &&
               record.Customer_Id &&
@@ -674,45 +657,25 @@ function setPrice(item_id, products, sales_record, discount, dynamic) {
               now - new Date(record.date) < 96 * 60 * 60 * 1000
             );
             let dynamicDiscount = 0;
-            // Find the highest applicable discount based on sales history
             for (let hours in discountRates) {
-            
-              // iterate through the records and calculate whether the last time the product was sold falls within the applicable hours for a discount
               if (sales.every((record) => now - new Date(record.date) >= hours * 60 * 60 * 1000)) {
-                //if the discount qualifies under the discount's time restrictions, apply the discount dynamically
                 dynamicDiscount = discountRates[hours];
               }
             }
-            // Calculate the new price with the dynamic discount
             product.price = Number((product.price * (1 - dynamicDiscount / 100)).toFixed(2));
           } else {
-            // Apply a fixed discount
             product.price = Number((product.price * (1 - discount / 100)).toFixed(2));
           }
         }
       });
     }
   }
-                            ////////////////////////////
-                            ////ITM353 Assignment 6 ////
-                            ////////////////////////////
-
-
-  /*used for applying the discount on the admin's interface*/
-  app.post("/apply_discount", function (request, response) {
-
-    // Extract the item ID from the request body and assign it to the variable item_id.
+  
+/*ITM 353 - A6:*/
+app.post("/apply_discount", function (request, response) {
     const item_id = request.body.item_id;
-
-    // Parse the discount value from the request body as a float and assign it to the variable discount.
     const discount = parseFloat(request.body.discount);
-
-    // Check if the 'dynamic' property in the request body is set to 'on' and assign the boolean result to the variable dynamic.
     const dynamic = request.body.dynamic === 'on';
-    
-    console.log("sales_record = "+Object.values(sales_record))
-    console.log("salesRecord = "+salesRecord)
-
     // Check if item_id is empty
     if (item_id === "") {
         response.redirect('admin_page?error=Cannot Apply Discount, Please Enter Item ID');
@@ -720,28 +683,22 @@ function setPrice(item_id, products, sales_record, discount, dynamic) {
     }
 
     let itemFound = false;
-    for (let category in products_data) { 
-        // Iterate through each category in the products_data object.
+    for (let category in products_data) {
         for (let product of products_data[category]) {
-        // Iterate through each product within the current category of the products_data object.
             if (item_id === product.id || item_id === '*') {
-                // Check if the item ID matches the ID of the current product or if the item ID is '*' 
                 setPrice(item_id, products_data, sales_record, discount, dynamic);
-                // Call the setPrice function, passing in the item ID, products_data, sales_record, discount, and dynamic as parameters to update the price of the item.
                 itemFound = true;
                 console.log("itemFound ="+ itemFound)
                 break;
             }
         }
         if (itemFound) {
-            // If an item was found and processed earlier in the loop, execute the following code block.
             console.log("itemFound ="+ itemFound)
             break;
         }
     }
 
     if (!itemFound) {
-        // If an item was not found then this error message will pop up.
         response.redirect('admin_page?error=Cannot Apply Discount, Item ID not Found in Products Data');
         return;
     }
@@ -1055,9 +1012,8 @@ app.post("/email_inv", function (request, response) {
                 
                 // For every user that is already in the system
                 loggedInEmail = request.cookies.email
-                // Create new sales record when the transaction is finished
+                // Create new sales record
                 var Item_Id = products_data[catagory_key][i].id;
-                //Apply if the user is logged in or if the admin is logged in (for testing purposes)
                 if (request.cookies.loggedIn=="true"){
                 salesRecord = {
                     item_id: Item_Id,
