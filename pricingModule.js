@@ -1,4 +1,10 @@
 function setPrice(item_id, products, sales_record, discount, dynamic) {
+  try {
+    const salesData = fs.readFileSync('./sales_record.json', 'utf-8');
+    sales_record = JSON.parse(salesData);
+} catch (err) {
+    console.log('Error reading sales record file:', err);
+}
   const now = new Date();
   const discountRates = {
     24: 10,
@@ -32,6 +38,3 @@ function setPrice(item_id, products, sales_record, discount, dynamic) {
   }
 }
 
-module.exports = {
-  setPrice,
-};

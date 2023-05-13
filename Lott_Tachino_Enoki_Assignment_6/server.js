@@ -632,12 +632,53 @@ app.get("/admin_page", function (request, response) {
     response.send(str);
 });
 
+function setPrice(item_id, products, sales_record, discount, dynamic) {
+    try {
+      const salesData = fs.readFileSync('./sales_record.json', 'utf-8');
+      sales_record = JSON.parse(salesData);
+  } catch (err) {
+      console.log('Error reading sales record file:', err);
+  }
+    const now = new Date();
+    const discountRates = {
+      24: 10,
+      48: 30,
+      72: 60,
+      96: 95,
+    };
+    for (let category in products) {
+      products[category].forEach((product) => {
+        if (item_id === '*' || product.id === item_id) {
+          if (dynamic) {
+            const sales = sales_record.filter((record) =>
+              record.item_id === product.id &&
+              record.Customer_Id &&
+              record.Quantity_sold > 0 &&
+              record.date &&
+              now - new Date(record.date) < 96 * 60 * 60 * 1000
+            );
+            let dynamicDiscount = 0;
+            for (let hours in discountRates) {
+              if (sales.every((record) => now - new Date(record.date) >= hours * 60 * 60 * 1000)) {
+                dynamicDiscount = discountRates[hours];
+              }
+            }
+            product.price = Number((product.price * (1 - dynamicDiscount / 100)).toFixed(2));
+          } else {
+            product.price = Number((product.price * (1 - discount / 100)).toFixed(2));
+          }
+        }
+      });
+    }
+  }
+  
 /*ITM 353 - A6:*/
 app.post("/apply_discount", function (request, response) {
     const item_id = request.body.item_id;
     const discount = parseFloat(request.body.discount);
     const dynamic = request.body.dynamic === 'on';
-
+    console.log("sales_record = "+Object.values(sales_record))
+    console.log("salesRecord = "+salesRecord)
     // Check if item_id is empty
     if (item_id === "") {
         response.redirect('admin_page?error=Cannot Apply Discount, Please Enter Item ID');
@@ -647,13 +688,15 @@ app.post("/apply_discount", function (request, response) {
     let itemFound = false;
     for (let category in products_data) {
         for (let product of products_data[category]) {
-            if (item_id === product.id) {
-                pricingModule.setPrice(item_id, products_data, sales_record, discount, dynamic);
+            if (item_id === product.id || item_id === '*') {
+                setPrice(item_id, products_data, sales_record, discount, dynamic);
                 itemFound = true;
+                console.log("itemFound ="+ itemFound)
                 break;
             }
         }
         if (itemFound) {
+            console.log("itemFound ="+ itemFound)
             break;
         }
     }
@@ -974,12 +1017,21 @@ app.post("/email_inv", function (request, response) {
                 loggedInEmail = request.cookies.email
                 // Create new sales record
                 var Item_Id = products_data[catagory_key][i].id;
+                if (request.cookies.loggedIn=="true"){
                 salesRecord = {
                     item_id: Item_Id,
                     Customer_Id : user_data[loggedInEmail].Customer_Id,
                     Quantity_sold: shopping_cart[catagory_key][i],
                     date: new Date().toISOString()
                 };
+            } else if (request.cookies.adminIn = "true") {
+                salesRecord = {
+                    item_id: Item_Id,
+                    Customer_Id : admin_data[loggedInEmail].Customer_Id,
+                    Quantity_sold: shopping_cart[catagory_key][i],
+                    date: new Date().toISOString()
+                };
+            }
 
                 // Add new sales record to array of existing records
                 salesRecords.push(salesRecord);

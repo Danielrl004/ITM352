@@ -1,14 +1,3 @@
-function manualDiscount (item_id, products, discount) {
-  for (let category in products) {
-    products[category].forEach((product) => {
-      if (item_id === '*' || product.id === item_id) {
-        product.price = product.price * (1 - discount / 100);
-      }
-    })
-  }
-}
-
-
 function setPrice(item_id, products, sales_record, discount, dynamic) {
     const now = new Date();
     const discountRates = {
@@ -46,7 +35,6 @@ function setPrice(item_id, products, sales_record, discount, dynamic) {
   
   module.exports = {
     setPrice,
-    manualDiscount,
   };
   
   

@@ -974,12 +974,21 @@ app.post("/email_inv", function (request, response) {
                 loggedInEmail = request.cookies.email
                 // Create new sales record
                 var Item_Id = products_data[catagory_key][i].id;
-                salesRecord = {
-                    item_id: Item_Id,
-                    Customer_Id : user_data[loggedInEmail].Customer_Id,
-                    Quantity_sold: shopping_cart[catagory_key][i],
-                    date: new Date().toISOString()
-                };
+                if (request.cookies.loggedIn=="true"){
+                    salesRecord = {
+                        item_id: Item_Id,
+                        Customer_Id : user_data[loggedInEmail].Customer_Id,
+                        Quantity_sold: shopping_cart[catagory_key][i],
+                        date: new Date().toISOString()
+                    };
+                } else if (request.cookies.adminIn = "true") {
+                    salesRecord = {
+                        item_id: Item_Id,
+                        Customer_Id : admin_data[loggedInEmail].Customer_Id,
+                        Quantity_sold: shopping_cart[catagory_key][i],
+                        date: new Date().toISOString()
+                    };
+                }
 
                 // Add new sales record to array of existing records
                 salesRecords.push(salesRecord);
