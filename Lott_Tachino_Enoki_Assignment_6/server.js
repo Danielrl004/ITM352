@@ -20,7 +20,6 @@ const crypto = require('crypto');
 let secretekey = 'secretekey';
 var cookieParser = require('cookie-parser');
 var nodemailer = require('nodemailer');
-var pricingModule = require('./pricingModule');
 var sales_record = require('./sales_record.json');
 var products_data = require('./product_data.json');
 
@@ -1024,7 +1023,7 @@ app.post("/email_inv", function (request, response) {
                     Quantity_sold: shopping_cart[catagory_key][i],
                     date: new Date().toISOString()
                 };
-            } else if (request.cookies.adminIn = "true") {
+            } else if (request.cookies.adminIn == "true") {
                 salesRecord = {
                     item_id: Item_Id,
                     Customer_Id : admin_data[loggedInEmail].Customer_Id,
